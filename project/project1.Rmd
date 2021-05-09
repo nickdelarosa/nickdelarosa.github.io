@@ -1,0 +1,218 @@
+---
+title: "Project 1 NBA Team Data"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## Nicholas Delarosa ned423
+
+I decided to focus my project on various NBA team stats from the 2000-01 to 2016-17 NBA season. Basketball has always been one of my favorite hobbies, whether it be watching or playing, so that largely sums up why I chose such data! To start, I gathered 3 data sets that all shared an NBA team and year variable, although alot of the data was somewhat messy, with differences in variable and cell name spellings. The first dataset focused only on an NBA Continuity stat for each team and year, this variable represents the player turnover or the % of a team's regular season minutes that were filled by players from the previous season's roster. The second dataset featured various NBA game attendance data and the final dataset contained NBA team record data. Intially, I planned to provide support to my hypothesis that team continuity, winning percentage, and NBA game attendence were all positively correlated. 
+
+Begin by loading data
+
+```{r}
+library(tidyverse)
+NBACont <- read_csv("NBAContt.csv")
+NBAAtt <- read_csv("NBAAtt.csv")
+NBARec <- read_csv("NBARec.csv")
+
+```
+
+
+## Part 1: Cleaning Data Before Joining
+
+
+First, I began working on dataset 1, NBA attendance data. This chunk represents some of the cleaning I performed before joining. I removed unwanted variables, renamed the current ones, and then used mutate to recode the year outputs to match the other two datasets. 
+
+```{r}
+NBAtt1 <- NBAAtt %>% select(-`Away: % Capactiy`) %>% rename("Away:Avg Attendance"="Away: Total Attendance", "Away: % Capacity"="Away: Avg Attendance", "Year"="Starting Year", "Home: % Capacity"="Home: % Capactiy") 
+NBAtt1 <- NBAtt1 %>% mutate(Year=recode(Year, '2000'="2000-01", '2001'="2001-02", '2002'="2002-03", '2003'="2003-04", '2004'="2004-05", '2005'="2005-06", '2006'="2006-07", '2007'="2007-08", '2008'="2008-09", '2009'="2009-10", '2010'="2010-11", '2011'="2011-12", '2012'="2012-13", '2013'="2013-14", '2014'="2014-15", '2015'="2015-16"))
+NBAtt1 <- NBAtt1 %>% select(-`Home: % Capacity`, -`Away: % Capacity`)
+head(NBAtt1)
+
+```
+In this section, I actually added another year of team stats to the NBA attendance data to encompass more years. This data was read in then cleaned and full joined with the original NBA attendance data.
+
+
+
+```{r}
+NBAAtt1617 <- read_csv("NBAatt1617.csv")
+```
+
+```{r}
+
+head(NBAAtt1617)
+
+```
+```{r}
+NBAAttfinal <- NBAtt1 %>% full_join(NBAAtt1617)
+NBAAttfinal <- NBAAttfinal %>% mutate(Year=recode(Year, '2016-2017'="2016-17"))
+NBAAttfinal <- NBAAttfinal %>% mutate(Team=recode(Team, 'NY Knicks'="Knicks"))
+head(NBAAttfinal)
+```
+
+Here, I begin making the next dataset, the nba continuity data, longer using pivot longer. Initially each NBA team was a variable. 
+
+
+```{r}
+NBACont <- NBACont %>% pivot_longer(2:31,names_to="Team", values_to="Continuity") %>% rename("Year"="Season")
+NBACont <- NBACont %>% mutate(Team=recode(Team, 'ATL'="Hawks",'BOS'="Celtics",'CHA'="Hornets", 'CHI'="Bulls",'CLE'="Cavaliers",'DAL'="Mavericks",'DEN'="Nuggets",'DET'="Pistons",'GSW'="Warriors",'HOU'="Rockets",'IND'="Pacers",'LAC'="Clippers",'LAL'="Lakers",'MEM'="Grizzlies",'MIA'="Heat",'MIL'="Bucks",'MIN'="Timberwolves",'NJN'="Nets",'NOH'="Hornets",'NYK'="Knicks",'OKC'="Thunder",'ORL'="Magic",'PHI'="76ers",'PHO'="Suns",'POR'="Trail Blazers",'SAC'="Kings",'SAS'="Spurs",'TOR'="Raptors",'UTA'="Jazz",'WAS'="Wizards"))
+
+head(NBACont)
+```
+
+Here I begin cleaning up the last dataset, NBA records, which only required som variable removal. 
+ 
+
+```{r}
+NBARec %>% select(-contains("X"))
+NBARecfinal <- NBARec %>% select(-contains("X"))
+
+```
+##Part 2: Joining
+
+Initially I began by combining two datasets, NBA records and attendance. 
+
+```{r}
+NBARecAtt <- NBAAttfinal %>% full_join(NBARecfinal)
+NBARecAtt <- NBARecAtt %>% rename("Total Home Att Rank"="Rank")
+head(NBARecAtt)
+```
+
+Then I merge this new combined dataset to the final continuity dataset. Because I was only looking at teams from 2000-2017, I sliced only these desired rows for the data. For both of these join instances I decided to use fulljoin largely because I had organized the data to fit more nicely before joining. Still, the datasets all shared the Team and Year variable. It should also be noted another reason for dropping the pre 2000 years was because of large amounts of missing, especially for the main variables I wanted to analyze. 
+
+```{r}
+NBAfinal <- NBARecAtt %>% full_join(NBACont)
+NBAdata <- NBAfinal %>% slice(1:522)
+NBAdata <- NBAdata %>% select(-contains("X"), -'Home: % Capacity', -'Away: % Capacity')
+head(NBAdata)
+```
+##Part 3: Utilize functions and create summary stats. 
+
+Before I began analyzing, I used mutate to change continuity into a numeric (percentage). Using this 
+saved data from here out.
+
+```{r}
+NBAfinaldata <- NBAdata %>% mutate(Continuity = as.numeric(gsub("%", "", Continuity)))
+head(NBAfinaldata)
+```
+
+One of the first observations I wanted to make was finding the best winning percentages over all teams and seasons in the set. I already had a hint who it was, but it was fun to see it in R! For this stat I filtered by winning percentages over .75 and then arranged by descending after selecting.
+```{r}
+NBAfinaldata %>% filter(`Winning Percentage`>.75) %>% select(Team, Year, `Winning Percentage`) %>% arrange(desc(`Winning Percentage`))
+```
+In this table I used summarize to generate column with mean home attendance for each team from a 2000-01 to 2016-17 span. Here I grouped by Team, then used summarize to generate a new column displaying the mean of total home attendance overall.
+
+```{r}
+NBAfinaldata %>% group_by(Team) %>% summarize(mean_home_att=mean(`Home: Total Attendance`, na.rm=T)) %>% arrange(desc(mean_home_att))
+```
+Here I created new variable using mutate. Taking the mean of the away and home attendance variables. 
+
+```{r}
+NBAfinaldata %>% mutate(avg_game_att=(`Home: Avg Attendance`+`Away:Avg Attendance`)/2)
+
+```
+Summary Statistics table.
+```{r}
+my.summary <- function(x, na.rm=TRUE){
+     result <- c(Mean=mean(x, na.rm=na.rm),
+                 SD=sd(x, na.rm=na.rm),
+                 Median=median(x, na.rm=na.rm),
+                 Min=min(x, na.rm=na.rm),
+                 Max=max(x, na.rm=na.rm), 
+                 N=length(x))
+}
+ind <- sapply(NBAfinaldata, is.numeric)
+sapply(NBAfinaldata[, ind], my.summary)  
+```
+Using the above code chunk and the knitr kable package below, I generated a summary table of statistics including mean, sd, median, min, max and n. I thought it was odd that the mean winning percentage was just at 500, I figured it would be a little lower or higher but it was right at even. It was also funny to analyze the min for winning percentage in comparison to the other warriors statistic brought up earlier. 
+
+
+```{r}
+summstats <- as.data.frame(sapply(NBAfinaldata[, ind], my.summary))
+summstats %>% knitr::kable(caption = "Summary Statistics", digits = 2)
+```
+
+
+
+
+#4 Visualization portion
+
+```{r}
+library(ggplot2)
+```
+
+After Running GGplot2 package I created a correlation data table, manually eliminating any rows that didn't work with the data I wanted, including total games home and away, and attendance rank.
+
+
+```{r}
+corelatNBA <- NBAfinaldata %>% select_if(is.numeric) %>% cor(use = "pair") %>% as.data.frame %>%  rownames_to_column("var1") %>% pivot_longer(-1, names_to="var2",values_to="correlation") %>% slice(19, 20, 22:24, 27, 28, 30:32, 43, 44, 46:48, 51, 52, 54:56, 59, 60, 62:64)
+head(corelatNBA)
+```
+Then I ran code to construct the heat correlation map. I was excited to see higher/positive correlations for my variables of interests. This included Continuity and winning perc (0.43), winning perc and away and home attendance (0.45 and 0.46), and even continuity and home and away attendance (0.17 and 0.16)
+
+
+```{r}
+corelatNBA %>% ggplot(aes(var1,var2,fill=correlation)) +  geom_tile() +  scale_fill_gradient2(low="red",mid="white",high="dark green") + geom_text(aes(label=round(correlation,2)),color = "black", size = 4) + xlab("")+ylab("") + coord_fixed() + ggtitle("2000-2017 NBA Team Data Correlation Map") + theme(axis.text.x = element_text(angle = 90))
+```
+
+
+Here, I created a categorical variable from my numeric winning percentage column using the following code. 
+
+```{r}
+NBAfinaldata$Win_Status <- cut(NBAfinaldata$`Winning Percentage`, 
+breaks = c(-Inf, 0.5, 0.6, Inf), labels = c("Below 500", "Between 500 and 600", "Above 600"),  right = FALSE)
+```
+
+This was then used to create a barplot highlighting the relationship of mean continuity and win status (perc). The differences in green represent the proportion of the team spent at the level. For example the spurs remained above .600 for the 17 year span! Some teams like the wizards were never above the percentage.  
+
+```{r}
+na.omit(NBAfinaldata) %>% ggplot(aes(x = Team, y = Continuity, fill = Win_Status), stat = "summary", fun = mean)+  geom_bar(stat="identity") + theme(axis.text.x = element_text(angle=45, hjust=1)) + ylab("Mean Continuity") + ggtitle("Mean Continuity of NBA Teams from 2000-2017") + scale_fill_brewer(palette = "Greens") + scale_y_continuous(breaks=seq(0,1400,200))
+
+```
+For this data set, I wanted to emphasize the relationship between Home attendance and win status. Using the scatterplot, it's easier to see how the better teams separate from the below 500 teams in attendance. Still this still didn't prevent some outliers. 
+
+```{r}
+na.omit(NBAfinaldata) %>% ggplot(aes(x = Year, y = `Home: Total Attendance`, color = Win_Status), stat = "summary", fun = mean)+ geom_point(size = 2, stat = "identity") + scale_color_manual(values = c("Red2", "Yellow2", "Green3")) + ggtitle("Yearly NBA Total Home Attendance Based on Win Percentage") + theme(axis.text.x = element_text(angle = 90))
+```
+
+##5 Clustering
+
+
+```{r}
+library(cluster)
+clustdata <- na.omit(NBAfinaldata) %>% select('Home: Total Attendance', 'Home: Avg Attendance', 'Away:Avg Attendance', 'Winning Percentage', Continuity)
+ pam14 <- clustdata %>% scale %>% pam(k=3)
+ pam14
+```
+
+For my cluster, I decided to create 3 using the same 5 numeric variables I isolated earlier. It was cool to observe how the clusters seemed to create a subpar section, average section, and above average section for the grouping. The continuity and winning percentage graph I created below showed this well. 
+
+```{r}
+pamcluster1 <- clustdata %>% mutate(cluster=as.factor(pam14$clustering))
+pamcluster1 %>% ggplot(aes(`Winning Percentage`,Continuity,color=cluster))+ geom_point(stat = "identity") + ggtitle("Viewing Clusters by Continuity and Winning Percentage")
+```
+
+
+```{r}
+library(GGally)
+ggpairs(pamcluster1, columns=1:5, aes(color=cluster))
+```
+This plot was created to give a further in depth view of the results. 
+
+
+
+
+```{r}
+plot(pam14,which=2)
+```
+Unfortunately, the average for this cluster trash and not evident of any connections. While this might be partly to blame on the data used, It was interesting to observe such variables!
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

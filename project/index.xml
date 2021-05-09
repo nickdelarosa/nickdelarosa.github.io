@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Nick Delarosa</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Nick Delarosa</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Project 1 NBA Team Data</title>
+      <link>/project/project1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Nicholas Delarosa ned423 I decided to focus my project on various NBA team stats from the 2000-01 to 2016-17 NBA season. Basketball has always been one of my favorite hobbies, whether it be watching or playing, so that largely sums up why I chose such data! To start, I gathered 3 data sets that all shared an NBA team and year variable, although alot of the data was somewhat messy, with differences in variable and cell name spellings.</description>
+    </item>
+    
+    <item>
+      <title>Project2</title>
+      <link>/project/project2/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>Nicholas Delarosa ned423 The data I utilized focused on Marvel superheroes and supervillains. The data initially featured characters from other publishers, but I chose only to analyze Marvel (largely because they are my favorite publisher). The data contained 341 observations and 177 total variables, 167 of which were various powers, abilities, and characteristics. These variables were the main focus of analyzation, and some specific variables which would be examined (though all were looked at in the end) included super speed and accelerated healing.</description>
+    </item>
+    
+  </channel>
+</rss>

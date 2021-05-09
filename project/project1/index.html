@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Nick Delarosa" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1 NBA Team Data</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1 NBA Team Data</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="nicholas-delarosa-ned423" class="section level2">
+<h2>Nicholas Delarosa ned423</h2>
+<p>I decided to focus my project on various NBA team stats from the 2000-01 to 2016-17 NBA season. Basketball has always been one of my favorite hobbies, whether it be watching or playing, so that largely sums up why I chose such data! To start, I gathered 3 data sets that all shared an NBA team and year variable, although alot of the data was somewhat messy, with differences in variable and cell name spellings. The first dataset focused only on an NBA Continuity stat for each team and year, this variable represents the player turnover or the % of a team’s regular season minutes that were filled by players from the previous season’s roster. The second dataset featured various NBA game attendance data and the final dataset contained NBA team record data. Intially, I planned to provide support to my hypothesis that team continuity, winning percentage, and NBA game attendence were all positively correlated.</p>
+<p>Begin by loading data</p>
+<pre class="r"><code>library(tidyverse)
+NBACont &lt;- read_csv(&quot;NBAContt.csv&quot;)
+NBAAtt &lt;- read_csv(&quot;NBAAtt.csv&quot;)
+NBARec &lt;- read_csv(&quot;NBARec.csv&quot;)</code></pre>
+</div>
+<div id="part-1-cleaning-data-before-joining" class="section level2">
+<h2>Part 1: Cleaning Data Before Joining</h2>
+<p>First, I began working on dataset 1, NBA attendance data. This chunk represents some of the cleaning I performed before joining. I removed unwanted variables, renamed the current ones, and then used mutate to recode the year outputs to match the other two datasets.</p>
+<pre class="r"><code>NBAtt1 &lt;- NBAAtt %&gt;% select(-`Away: % Capactiy`) %&gt;% rename(`Away:Avg Attendance` = &quot;Away: Total Attendance&quot;, 
+    `Away: % Capacity` = &quot;Away: Avg Attendance&quot;, Year = &quot;Starting Year&quot;, 
+    `Home: % Capacity` = &quot;Home: % Capactiy&quot;)
+NBAtt1 &lt;- NBAtt1 %&gt;% mutate(Year = recode(Year, `2000` = &quot;2000-01&quot;, 
+    `2001` = &quot;2001-02&quot;, `2002` = &quot;2002-03&quot;, `2003` = &quot;2003-04&quot;, 
+    `2004` = &quot;2004-05&quot;, `2005` = &quot;2005-06&quot;, `2006` = &quot;2006-07&quot;, 
+    `2007` = &quot;2007-08&quot;, `2008` = &quot;2008-09&quot;, `2009` = &quot;2009-10&quot;, 
+    `2010` = &quot;2010-11&quot;, `2011` = &quot;2011-12&quot;, `2012` = &quot;2012-13&quot;, 
+    `2013` = &quot;2013-14&quot;, `2014` = &quot;2014-15&quot;, `2015` = &quot;2015-16&quot;))
+NBAtt1 &lt;- NBAtt1 %&gt;% select(-`Home: % Capacity`, -`Away: % Capacity`)
+head(NBAtt1)</code></pre>
+<pre><code>## # A tibble: 6 x 8
+##   Year   Rank Team  `Home: Total Ga… `Home: Total At… `Home: Avg Atte…
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2015…     1 Bulls               41           894659            21820
+## 2 2015…     2 Cava…               41           843042            20562
+## 3 2015…     3 Mave…               41           825901            20143
+## 4 2015…     4 Rapt…               41           812863            19825
+## 5 2015…     5 NY K…               41           812292            19812
+## 6 2015…     6 Heat                41           809350            19740
+## # … with 2 more variables: `Away: Total Games` &lt;dbl&gt;, `Away:Avg
+## #   Attendance` &lt;dbl&gt;</code></pre>
+<p>In this section, I actually added another year of team stats to the NBA attendance data to encompass more years. This data was read in then cleaned and full joined with the original NBA attendance data.</p>
+<pre class="r"><code>NBAAtt1617 &lt;- read_csv(&quot;NBAatt1617.csv&quot;)</code></pre>
+<pre class="r"><code>head(NBAAtt1617)</code></pre>
+<pre><code>## # A tibble: 6 x 13
+##   Year   Rank Team  `Home: Total Ga… `Home: Total At… `Home: Avg Atte…
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2016…     1 Bulls               41           888882            21680
+## 2 2016…     2 Cava…               41           843042            20562
+## 3 2016…     3 Rapt…               41           813050            19830
+## 4 2016…     4 Mave…               41           811366            19789
+## 5 2016…     5 NY K…               41           810741            19774
+## 6 2016…     6 Jazz                41           806605            19673
+## # … with 7 more variables: `Home: % Capacity` &lt;dbl&gt;, `Away: Total Games` &lt;dbl&gt;,
+## #   `Away:Avg Attendance` &lt;dbl&gt;, `Away: % Capacity` &lt;dbl&gt;, X11 &lt;lgl&gt;,
+## #   X12 &lt;lgl&gt;, X13 &lt;lgl&gt;</code></pre>
+<pre class="r"><code>NBAAttfinal &lt;- NBAtt1 %&gt;% full_join(NBAAtt1617)
+NBAAttfinal &lt;- NBAAttfinal %&gt;% mutate(Year = recode(Year, `2016-2017` = &quot;2016-17&quot;))
+NBAAttfinal &lt;- NBAAttfinal %&gt;% mutate(Team = recode(Team, `NY Knicks` = &quot;Knicks&quot;))
+head(NBAAttfinal)</code></pre>
+<pre><code>## # A tibble: 6 x 13
+##   Year   Rank Team  `Home: Total Ga… `Home: Total At… `Home: Avg Atte…
+##   &lt;chr&gt; &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2015…     1 Bulls               41           894659            21820
+## 2 2015…     2 Cava…               41           843042            20562
+## 3 2015…     3 Mave…               41           825901            20143
+## 4 2015…     4 Rapt…               41           812863            19825
+## 5 2015…     5 Knic…               41           812292            19812
+## 6 2015…     6 Heat                41           809350            19740
+## # … with 7 more variables: `Away: Total Games` &lt;dbl&gt;, `Away:Avg
+## #   Attendance` &lt;dbl&gt;, `Home: % Capacity` &lt;dbl&gt;, `Away: % Capacity` &lt;dbl&gt;,
+## #   X11 &lt;lgl&gt;, X12 &lt;lgl&gt;, X13 &lt;lgl&gt;</code></pre>
+<p>Here, I begin making the next dataset, the nba continuity data, longer using pivot longer. Initially each NBA team was a variable.</p>
+<pre class="r"><code>NBACont &lt;- NBACont %&gt;% pivot_longer(2:31, names_to = &quot;Team&quot;, 
+    values_to = &quot;Continuity&quot;) %&gt;% rename(Year = &quot;Season&quot;)
+NBACont &lt;- NBACont %&gt;% mutate(Team = recode(Team, ATL = &quot;Hawks&quot;, 
+    BOS = &quot;Celtics&quot;, CHA = &quot;Hornets&quot;, CHI = &quot;Bulls&quot;, CLE = &quot;Cavaliers&quot;, 
+    DAL = &quot;Mavericks&quot;, DEN = &quot;Nuggets&quot;, DET = &quot;Pistons&quot;, GSW = &quot;Warriors&quot;, 
+    HOU = &quot;Rockets&quot;, IND = &quot;Pacers&quot;, LAC = &quot;Clippers&quot;, LAL = &quot;Lakers&quot;, 
+    MEM = &quot;Grizzlies&quot;, MIA = &quot;Heat&quot;, MIL = &quot;Bucks&quot;, MIN = &quot;Timberwolves&quot;, 
+    NJN = &quot;Nets&quot;, NOH = &quot;Hornets&quot;, NYK = &quot;Knicks&quot;, OKC = &quot;Thunder&quot;, 
+    ORL = &quot;Magic&quot;, PHI = &quot;76ers&quot;, PHO = &quot;Suns&quot;, POR = &quot;Trail Blazers&quot;, 
+    SAC = &quot;Kings&quot;, SAS = &quot;Spurs&quot;, TOR = &quot;Raptors&quot;, UTA = &quot;Jazz&quot;, 
+    WAS = &quot;Wizards&quot;))
+
+head(NBACont)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   Year    Team      Continuity
+##   &lt;chr&gt;   &lt;chr&gt;     &lt;chr&gt;     
+## 1 2016-17 Hawks     78%       
+## 2 2016-17 Celtics   82%       
+## 3 2016-17 Hornets   78%       
+## 4 2016-17 Bulls     51%       
+## 5 2016-17 Cavaliers 87%       
+## 6 2016-17 Mavericks 55%</code></pre>
+<p>Here I begin cleaning up the last dataset, NBA records, which only required som variable removal.</p>
+<pre class="r"><code>NBARec %&gt;% select(-contains(&quot;X&quot;))</code></pre>
+<pre><code>## # A tibble: 2,022 x 4
+##    Year      Team    Record `Winning Percentage`
+##    &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;                 &lt;dbl&gt;
+##  1 2016-17   Celtics 25-15                 0.625
+##  2 2015-16   Celtics 48-34                 0.585
+##  3 2014-15   Celtics 40-42                 0.488
+##  4 2013-14   Celtics 25-57                 0.305
+##  5 2012-13   Celtics 41-40                 0.506
+##  6 2011-12 * Celtics 39-27                 0.591
+##  7 2010-11   Celtics 56-26                 0.683
+##  8 2009-10   Celtics 50-32                 0.61 
+##  9 2008-09   Celtics 62-20                 0.756
+## 10 2007-08   Celtics 66-16                 0.805
+## # … with 2,012 more rows</code></pre>
+<pre class="r"><code>NBARecfinal &lt;- NBARec %&gt;% select(-contains(&quot;X&quot;))</code></pre>
+<p>##Part 2: Joining</p>
+<p>Initially I began by combining two datasets, NBA records and attendance.</p>
+<pre class="r"><code>NBARecAtt &lt;- NBAAttfinal %&gt;% full_join(NBARecfinal)
+NBARecAtt &lt;- NBARecAtt %&gt;% rename(`Total Home Att Rank` = &quot;Rank&quot;)
+head(NBARecAtt)</code></pre>
+<pre><code>## # A tibble: 6 x 15
+##   Year  `Total Home Att… Team  `Home: Total Ga… `Home: Total At…
+##   &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2015…                1 Bulls               41           894659
+## 2 2015…                2 Cava…               41           843042
+## 3 2015…                3 Mave…               41           825901
+## 4 2015…                4 Rapt…               41           812863
+## 5 2015…                5 Knic…               41           812292
+## 6 2015…                6 Heat                41           809350
+## # … with 10 more variables: `Home: Avg Attendance` &lt;dbl&gt;, `Away: Total
+## #   Games` &lt;dbl&gt;, `Away:Avg Attendance` &lt;dbl&gt;, `Home: % Capacity` &lt;dbl&gt;, `Away:
+## #   % Capacity` &lt;dbl&gt;, X11 &lt;lgl&gt;, X12 &lt;lgl&gt;, X13 &lt;lgl&gt;, Record &lt;chr&gt;, `Winning
+## #   Percentage` &lt;dbl&gt;</code></pre>
+<p>Then I merge this new combined dataset to the final continuity dataset. Because I was only looking at teams from 2000-2017, I sliced only these desired rows for the data. For both of these join instances I decided to use fulljoin largely because I had organized the data to fit more nicely before joining. Still, the datasets all shared the Team and Year variable. It should also be noted another reason for dropping the pre 2000 years was because of large amounts of missing, especially for the main variables I wanted to analyze.</p>
+<pre class="r"><code>NBAfinal &lt;- NBARecAtt %&gt;% full_join(NBACont)
+NBAdata &lt;- NBAfinal %&gt;% slice(1:522)
+NBAdata &lt;- NBAdata %&gt;% select(-contains(&quot;X&quot;), -&quot;Home: % Capacity&quot;, 
+    -&quot;Away: % Capacity&quot;)
+head(NBAdata)</code></pre>
+<pre><code>## # A tibble: 6 x 11
+##   Year  `Total Home Att… Team  `Home: Total Ga… `Home: Total At…
+##   &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2015…                1 Bulls               41           894659
+## 2 2015…                2 Cava…               41           843042
+## 3 2015…                3 Mave…               41           825901
+## 4 2015…                4 Rapt…               41           812863
+## 5 2015…                5 Knic…               41           812292
+## 6 2015…                6 Heat                41           809350
+## # … with 6 more variables: `Home: Avg Attendance` &lt;dbl&gt;, `Away: Total
+## #   Games` &lt;dbl&gt;, `Away:Avg Attendance` &lt;dbl&gt;, Record &lt;chr&gt;, `Winning
+## #   Percentage` &lt;dbl&gt;, Continuity &lt;chr&gt;</code></pre>
+<p>##Part 3: Utilize functions and create summary stats.</p>
+<p>Before I began analyzing, I used mutate to change continuity into a numeric (percentage). Using this
+saved data from here out.</p>
+<pre class="r"><code>NBAfinaldata &lt;- NBAdata %&gt;% mutate(Continuity = as.numeric(gsub(&quot;%&quot;, 
+    &quot;&quot;, Continuity)))
+head(NBAfinaldata)</code></pre>
+<pre><code>## # A tibble: 6 x 11
+##   Year  `Total Home Att… Team  `Home: Total Ga… `Home: Total At…
+##   &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 2015…                1 Bulls               41           894659
+## 2 2015…                2 Cava…               41           843042
+## 3 2015…                3 Mave…               41           825901
+## 4 2015…                4 Rapt…               41           812863
+## 5 2015…                5 Knic…               41           812292
+## 6 2015…                6 Heat                41           809350
+## # … with 6 more variables: `Home: Avg Attendance` &lt;dbl&gt;, `Away: Total
+## #   Games` &lt;dbl&gt;, `Away:Avg Attendance` &lt;dbl&gt;, Record &lt;chr&gt;, `Winning
+## #   Percentage` &lt;dbl&gt;, Continuity &lt;dbl&gt;</code></pre>
+<p>One of the first observations I wanted to make was finding the best winning percentages over all teams and seasons in the set. I already had a hint who it was, but it was fun to see it in R! For this stat I filtered by winning percentages over .75 and then arranged by descending after selecting.</p>
+<pre class="r"><code>NBAfinaldata %&gt;% filter(`Winning Percentage` &gt; 0.75) %&gt;% select(Team, 
+    Year, `Winning Percentage`) %&gt;% arrange(desc(`Winning Percentage`))</code></pre>
+<pre><code>## # A tibble: 16 x 3
+##    Team      Year    `Winning Percentage`
+##    &lt;chr&gt;     &lt;chr&gt;                  &lt;dbl&gt;
+##  1 Warriors  2015-16                0.89 
+##  2 Warriors  2016-17                0.864
+##  3 Spurs     2015-16                0.817
+##  4 Warriors  2014-15                0.817
+##  5 Mavericks 2006-07                0.817
+##  6 Heat      2012-13                0.805
+##  7 Cavaliers 2008-09                0.805
+##  8 Celtics   2007-08                0.805
+##  9 Lakers    2008-09                0.793
+## 10 Spurs     2016-17                0.791
+## 11 Pistons   2005-06                0.78 
+## 12 Spurs     2005-06                0.768
+## 13 Spurs     2013-14                0.756
+## 14 Bulls     2010-11                0.756
+## 15 Celtics   2008-09                0.756
+## 16 Suns      2004-05                0.756</code></pre>
+<p>In this table I used summarize to generate column with mean home attendance for each team from a 2000-01 to 2016-17 span. Here I grouped by Team, then used summarize to generate a new column displaying the mean of total home attendance overall.</p>
+<pre class="r"><code>NBAfinaldata %&gt;% group_by(Team) %&gt;% summarize(mean_home_att = mean(`Home: Total Attendance`, 
+    na.rm = T)) %&gt;% arrange(desc(mean_home_att))</code></pre>
+<pre><code>## # A tibble: 30 x 2
+##    Team          mean_home_att
+##    &lt;chr&gt;                 &lt;dbl&gt;
+##  1 Bulls               856342.
+##  2 Mavericks           804674.
+##  3 Knicks              790358.
+##  4 Jazz                776333.
+##  5 Trail Blazers       769936.
+##  6 Lakers              767721.
+##  7 Spurs               763349.
+##  8 Heat                753166.
+##  9 Raptors             749821.
+## 10 Pistons             747342.
+## # … with 20 more rows</code></pre>
+<p>Here I created new variable using mutate. Taking the mean of the away and home attendance variables.</p>
+<pre class="r"><code>NBAfinaldata %&gt;% mutate(avg_game_att = (`Home: Avg Attendance` + 
+    `Away:Avg Attendance`)/2)</code></pre>
+<pre><code>## # A tibble: 522 x 12
+##    Year  `Total Home Att… Team  `Home: Total Ga… `Home: Total At…
+##    &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 2015…                1 Bulls               41           894659
+##  2 2015…                2 Cava…               41           843042
+##  3 2015…                3 Mave…               41           825901
+##  4 2015…                4 Rapt…               41           812863
+##  5 2015…                5 Knic…               41           812292
+##  6 2015…                6 Heat                41           809350
+##  7 2015…                7 Warr…               41           803436
+##  8 2015…                8 Trai…               41           794085
+##  9 2015…                9 Jazz                41           791489
+## 10 2015…               10 Clip…               41           786910
+## # … with 512 more rows, and 7 more variables: `Home: Avg Attendance` &lt;dbl&gt;,
+## #   `Away: Total Games` &lt;dbl&gt;, `Away:Avg Attendance` &lt;dbl&gt;, Record &lt;chr&gt;,
+## #   `Winning Percentage` &lt;dbl&gt;, Continuity &lt;dbl&gt;, avg_game_att &lt;dbl&gt;</code></pre>
+<p>Summary Statistics table.</p>
+<pre class="r"><code>my.summary &lt;- function(x, na.rm = TRUE) {
+    result &lt;- c(Mean = mean(x, na.rm = na.rm), SD = sd(x, na.rm = na.rm), 
+        Median = median(x, na.rm = na.rm), Min = min(x, na.rm = na.rm), 
+        Max = max(x, na.rm = na.rm), N = length(x))
+}
+ind &lt;- sapply(NBAfinaldata, is.numeric)
+sapply(NBAfinaldata[, ind], my.summary)</code></pre>
+<pre><code>##        Total Home Att Rank Home: Total Games Home: Total Attendance
+## Mean             15.531670         40.504798              702455.13
+## SD                8.600953          1.894444               94189.98
+## Median           16.000000         41.000000              704886.00
+## Min               1.000000         33.000000              460719.00
+## Max              30.000000         41.000000              913175.00
+## N               522.000000        522.000000                 522.00
+##        Home: Avg Attendance Away: Total Games Away:Avg Attendance
+## Mean              17339.921         40.506718          17363.4472
+## SD                 2164.368          1.894438            760.3151
+## Median            17317.000         41.000000          17305.0000
+## Min               11286.000         33.000000          15761.0000
+## Max               22272.000         41.000000          20102.0000
+## N                   522.000        522.000000            522.0000
+##        Winning Percentage Continuity
+## Mean            0.5021328   66.12525
+## SD              0.1526343   15.65547
+## Median          0.5120000   67.00000
+## Min             0.1220000   11.00000
+## Max             0.8900000   98.00000
+## N             522.0000000  522.00000</code></pre>
+<p>Using the above code chunk and the knitr kable package below, I generated a summary table of statistics including mean, sd, median, min, max and n. I thought it was odd that the mean winning percentage was just at 500, I figured it would be a little lower or higher but it was right at even. It was also funny to analyze the min for winning percentage in comparison to the other warriors statistic brought up earlier.</p>
+<pre class="r"><code>summstats &lt;- as.data.frame(sapply(NBAfinaldata[, ind], my.summary))
+summstats %&gt;% knitr::kable(caption = &quot;Summary Statistics&quot;, digits = 2)</code></pre>
+<table style="width:100%;">
+<caption><span id="tab:unnamed-chunk-15">Table 1: </span>Summary Statistics</caption>
+<colgroup>
+<col width="4%" />
+<col width="12%" />
+<col width="11%" />
+<col width="14%" />
+<col width="13%" />
+<col width="11%" />
+<col width="12%" />
+<col width="12%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Total Home Att Rank</th>
+<th align="right">Home: Total Games</th>
+<th align="right">Home: Total Attendance</th>
+<th align="right">Home: Avg Attendance</th>
+<th align="right">Away: Total Games</th>
+<th align="right">Away:Avg Attendance</th>
+<th align="right">Winning Percentage</th>
+<th align="right">Continuity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Mean</td>
+<td align="right">15.53</td>
+<td align="right">40.50</td>
+<td align="right">702455.13</td>
+<td align="right">17339.92</td>
+<td align="right">40.51</td>
+<td align="right">17363.45</td>
+<td align="right">0.50</td>
+<td align="right">66.13</td>
+</tr>
+<tr class="even">
+<td align="left">SD</td>
+<td align="right">8.60</td>
+<td align="right">1.89</td>
+<td align="right">94189.98</td>
+<td align="right">2164.37</td>
+<td align="right">1.89</td>
+<td align="right">760.32</td>
+<td align="right">0.15</td>
+<td align="right">15.66</td>
+</tr>
+<tr class="odd">
+<td align="left">Median</td>
+<td align="right">16.00</td>
+<td align="right">41.00</td>
+<td align="right">704886.00</td>
+<td align="right">17317.00</td>
+<td align="right">41.00</td>
+<td align="right">17305.00</td>
+<td align="right">0.51</td>
+<td align="right">67.00</td>
+</tr>
+<tr class="even">
+<td align="left">Min</td>
+<td align="right">1.00</td>
+<td align="right">33.00</td>
+<td align="right">460719.00</td>
+<td align="right">11286.00</td>
+<td align="right">33.00</td>
+<td align="right">15761.00</td>
+<td align="right">0.12</td>
+<td align="right">11.00</td>
+</tr>
+<tr class="odd">
+<td align="left">Max</td>
+<td align="right">30.00</td>
+<td align="right">41.00</td>
+<td align="right">913175.00</td>
+<td align="right">22272.00</td>
+<td align="right">41.00</td>
+<td align="right">20102.00</td>
+<td align="right">0.89</td>
+<td align="right">98.00</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+<td align="right">522.00</td>
+</tr>
+</tbody>
+</table>
+<p>#4 Visualization portion</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>After Running GGplot2 package I created a correlation data table, manually eliminating any rows that didn’t work with the data I wanted, including total games home and away, and attendance rank.</p>
+<pre class="r"><code>corelatNBA &lt;- NBAfinaldata %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;pair&quot;) %&gt;% 
+    as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% pivot_longer(-1, 
+    names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;) %&gt;% slice(19, 
+    20, 22:24, 27, 28, 30:32, 43, 44, 46:48, 51, 52, 54:56, 59, 
+    60, 62:64)
+head(corelatNBA)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   var1                   var2                   correlation
+##   &lt;chr&gt;                  &lt;chr&gt;                        &lt;dbl&gt;
+## 1 Home: Total Attendance Home: Total Attendance       1    
+## 2 Home: Total Attendance Home: Avg Attendance         0.937
+## 3 Home: Total Attendance Away:Avg Attendance          0.424
+## 4 Home: Total Attendance Winning Percentage           0.465
+## 5 Home: Total Attendance Continuity                   0.166
+## 6 Home: Avg Attendance   Home: Total Attendance       0.937</code></pre>
+<p>Then I ran code to construct the heat correlation map. I was excited to see higher/positive correlations for my variables of interests. This included Continuity and winning perc (0.43), winning perc and away and home attendance (0.45 and 0.46), and even continuity and home and away attendance (0.17 and 0.16)</p>
+<pre class="r"><code>corelatNBA %&gt;% ggplot(aes(var1, var2, fill = correlation)) + 
+    geom_tile() + scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, 
+    high = &quot;dark green&quot;) + geom_text(aes(label = round(correlation, 
+    2)), color = &quot;black&quot;, size = 4) + xlab(&quot;&quot;) + ylab(&quot;&quot;) + coord_fixed() + 
+    ggtitle(&quot;2000-2017 NBA Team Data Correlation Map&quot;) + theme(axis.text.x = element_text(angle = 90))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Here, I created a categorical variable from my numeric winning percentage column using the following code.</p>
+<pre class="r"><code>NBAfinaldata$Win_Status &lt;- cut(NBAfinaldata$`Winning Percentage`, 
+    breaks = c(-Inf, 0.5, 0.6, Inf), labels = c(&quot;Below 500&quot;, 
+        &quot;Between 500 and 600&quot;, &quot;Above 600&quot;), right = FALSE)</code></pre>
+<p>This was then used to create a barplot highlighting the relationship of mean continuity and win status (perc). The differences in green represent the proportion of the team spent at the level. For example the spurs remained above .600 for the 17 year span! Some teams like the wizards were never above the percentage.</p>
+<pre class="r"><code>na.omit(NBAfinaldata) %&gt;% ggplot(aes(x = Team, y = Continuity, 
+    fill = Win_Status), stat = &quot;summary&quot;, fun = mean) + geom_bar(stat = &quot;identity&quot;) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    ylab(&quot;Mean Continuity&quot;) + ggtitle(&quot;Mean Continuity of NBA Teams from 2000-2017&quot;) + 
+    scale_fill_brewer(palette = &quot;Greens&quot;) + scale_y_continuous(breaks = seq(0, 
+    1400, 200))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" />
+For this data set, I wanted to emphasize the relationship between Home attendance and win status. Using the scatterplot, it’s easier to see how the better teams separate from the below 500 teams in attendance. Still this still didn’t prevent some outliers.</p>
+<pre class="r"><code>na.omit(NBAfinaldata) %&gt;% ggplot(aes(x = Year, y = `Home: Total Attendance`, 
+    color = Win_Status), stat = &quot;summary&quot;, fun = mean) + geom_point(size = 2, 
+    stat = &quot;identity&quot;) + scale_color_manual(values = c(&quot;Red2&quot;, 
+    &quot;Yellow2&quot;, &quot;Green3&quot;)) + ggtitle(&quot;Yearly NBA Total Home Attendance Based on Win Percentage&quot;) + 
+    theme(axis.text.x = element_text(angle = 90))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>##5 Clustering</p>
+<pre class="r"><code>library(cluster)
+clustdata &lt;- na.omit(NBAfinaldata) %&gt;% select(&quot;Home: Total Attendance&quot;, 
+    &quot;Home: Avg Attendance&quot;, &quot;Away:Avg Attendance&quot;, &quot;Winning Percentage&quot;, 
+    Continuity)
+pam14 &lt;- clustdata %&gt;% scale %&gt;% pam(k = 3)
+pam14</code></pre>
+<pre><code>## Medoids:
+##       ID Home: Total Attendance Home: Avg Attendance Away:Avg Attendance
+## [1,] 441             0.76647594           0.76366579           0.6542645
+## [2,] 132             0.05791555           0.05411437           0.0951879
+## [3,] 141            -0.94582909          -0.95120009          -0.6262435
+##      Winning Percentage Continuity
+## [1,]         0.92212557  0.8944700
+## [2,]        -0.09945007 -0.3082722
+## [3,]        -0.49891234 -0.2449700
+## Clustering vector:
+##   [1] 1 1 2 1 1 1 2 1 1 2 1 1 1 1 2 2 2 1 2 3 2 1 2 2 3 3 3 3 3 1 1 2 2 1 2 1 1
+##  [38] 1 2 2 1 1 2 2 2 1 1 2 2 2 2 2 2 2 3 3 3 3 3 1 2 1 1 1 1 1 2 1 2 1 2 1 2 1
+##  [75] 2 2 2 2 2 3 3 3 3 3 3 3 3 1 2 1 2 2 1 1 2 2 2 1 1 2
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 361 entries ]
+## Objective function:
+##    build     swap 
+## 1.558499 1.543018 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<p>For my cluster, I decided to create 3 using the same 5 numeric variables I isolated earlier. It was cool to observe how the clusters seemed to create a subpar section, average section, and above average section for the grouping. The continuity and winning percentage graph I created below showed this well.</p>
+<pre class="r"><code>pamcluster1 &lt;- clustdata %&gt;% mutate(cluster = as.factor(pam14$clustering))
+pamcluster1 %&gt;% ggplot(aes(`Winning Percentage`, Continuity, 
+    color = cluster)) + geom_point(stat = &quot;identity&quot;) + ggtitle(&quot;Viewing Clusters by Continuity and Winning Percentage&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(GGally)
+ggpairs(pamcluster1, columns = 1:5, aes(color = cluster))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" />
+This plot was created to give a further in depth view of the results.</p>
+<pre class="r"><code>plot(pam14, which = 2)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" />
+Unfortunately, the average for this cluster trash and not evident of any connections. While this might be partly to blame on the data used, It was interesting to observe such variables!</p>
+<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

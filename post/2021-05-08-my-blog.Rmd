@@ -1,0 +1,19 @@
+---
+title: My blog
+author: ''
+date: '2021-05-08'
+slug: my-blog
+categories: []
+tags: []
+description: ''
+---
+
+
+Hello, this is my post
+[Link to project 1](/project/project1/)
+[Link to google](https://www.google.com)
+
+```{r}
+2+2
+```
+

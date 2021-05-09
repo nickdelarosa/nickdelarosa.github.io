@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Nick Delarosa" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project2</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project2</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="nicholas-delarosa-ned423" class="section level2">
+<h2>Nicholas Delarosa ned423</h2>
+<p>The data I utilized focused on Marvel superheroes and supervillains. The data initially featured characters from other publishers, but I chose only to analyze Marvel (largely because they are my favorite publisher). The data contained 341 observations and 177 total variables, 167 of which were various powers, abilities, and characteristics. These variables were the main focus of analyzation, and some specific variables which would be examined (though all were looked at in the end) included super speed and accelerated healing. Other variables included super strength, weapon based powers, flight, intelligence, and enhanced stamina. Of the non-power related variables, height and weight were utilized as well. Essentially, my goal was to determine if certain chosen power/abilities could be predicted by other powers/abilities.</p>
+</div>
+<div id="superhero-data-read-in-and-join" class="section level2">
+<h2>Superhero Data Read In and Join</h2>
+<p>First I read in my data, then joined the two datasets to form my super hero data for observation.</p>
+<pre class="r"><code>library(tidyverse)
+hero1 &lt;- read_csv(&quot;heroes_information.csv&quot;)
+hero2 &lt;- read_csv(&quot;super_hero_powers.csv&quot;)
+
+hero2 &lt;- hero2 %&gt;% rename(name = &quot;hero_names&quot;)
+hero1 &lt;- hero1 %&gt;% select(-X1)</code></pre>
+<p>Here I join the data using a full join to preserve all the characters and abilities
+and then filter for only Marvel characters.</p>
+<pre class="r"><code>herodata &lt;- hero1 %&gt;% full_join(hero2)
+herodata &lt;- herodata %&gt;% na.omit()
+
+herodata = filter(herodata, Publisher == &quot;Marvel Comics&quot;)</code></pre>
+</div>
+<div id="manova" class="section level2">
+<h2>Manova</h2>
+<p>Here I run my manova to test whether height or weight (two dependent variables) differ by having or not having super speed.</p>
+<pre class="r"><code>man1 &lt;- manova(cbind(Height, Weight) ~ `Super Speed`, data = herodata)
+summary(man1)</code></pre>
+<pre><code>##                Df   Pillai approx F num Df den Df  Pr(&gt;F)  
+## `Super Speed`   1 0.024997   4.3329      2    338 0.01387 *
+## Residuals     339                                          
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>A significant p value (0.014) was noted, indicating one of these two variables do differ by having or not having the super speed ability.</p>
+<p>Univariate ANOVA’s were then performed to determine the responses that showed a mean difference across having or not having super speed.</p>
+<pre class="r"><code>summary.aov(man1)</code></pre>
+<pre><code>##  Response Height :
+##                Df  Sum Sq Mean Sq F value Pr(&gt;F)
+## `Super Speed`   1   22203   22203  1.7055 0.1925
+## Residuals     339 4413443   13019               
+## 
+##  Response Weight :
+##                Df  Sum Sq Mean Sq F value   Pr(&gt;F)   
+## `Super Speed`   1  138239  138239  8.6699 0.003458 **
+## Residuals     339 5405244   15945                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>From the results, we see that there is no significant mean difference based on height (p value=.193).
+For weight, the mean difference does differ (p value=.003). In other words, weight does differ based on having or not having the super speed ability.</p>
+<p>The mean differences below help reinforce this conclusion.</p>
+<pre class="r"><code>herodata %&gt;% group_by(`Super Speed`) %&gt;% summarize(mean(Height), 
+    mean(Weight))</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   `Super Speed` `mean(Height)` `mean(Weight)`
+##   &lt;lgl&gt;                  &lt;dbl&gt;          &lt;dbl&gt;
+## 1 FALSE                   152.           75.2
+## 2 TRUE                    169.          116.</code></pre>
+<p>Here a post hoc t test is run, but since the super speed variable is only a yes or no value we already can conclude the significant variable and ignore this test when calculating Type 1 error.</p>
+<pre class="r"><code>pairwise.t.test(herodata$Weight, herodata$`Super Speed`, p.adj = &quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  herodata$Weight and herodata$`Super Speed` 
+## 
+##      FALSE 
+## TRUE 0.0035
+## 
+## P value adjustment method: none</code></pre>
+<p>Overall, 3 total tests were run:1 manova and 2 anovas.
+The probability of making at least one Type 1 error was determined to be 0.143 (14.3%).
+The Bonferri Correction was calculated to be 0.017.
+After this correction, the significance between weight and super speed is still significant (p value=.003).</p>
+<p>For our MANOVA assumptions, it would seem multivariate normality and linear relationships among the DV’s were met. For the independent observation assumption it’s possible that other power variables could have had an interaction resulting in the mean differences.</p>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization test</h2>
+<p>Now I run a randomization test on (F stat) weight and super speed. The null hypothesis essentially states that all the group means are equal, while the alternative hypothesis states that not all of the group means are equal.</p>
+<pre class="r"><code>obs_F &lt;- 8.6699
+
+Fs &lt;- replicate(5000, {
+    new &lt;- herodata %&gt;% mutate(Weight = sample(Weight))
+    
+    SSW &lt;- new %&gt;% group_by(`Super Speed`) %&gt;% summarize(SSW = sum((Weight - 
+        mean(Weight))^2)) %&gt;% summarize(sum(SSW)) %&gt;% pull
+    SSB &lt;- new %&gt;% mutate(mean = mean(Weight)) %&gt;% group_by(`Super Speed`) %&gt;% 
+        mutate(groupmean = mean(Weight)) %&gt;% summarize(SSB = sum((mean - 
+        groupmean)^2)) %&gt;% summarize(sum(SSB)) %&gt;% pull
+    (SSB/1)/(SSW/339)
+})
+
+
+hist(Fs, prob = T)
+abline(v = obs_F, col = &quot;red&quot;, add = T)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>mean(Fs &gt; obs_F)</code></pre>
+<pre><code>## [1] 0.0026</code></pre>
+<p>When interpreting the F stat histogram, we examine our actual F statistic (red line) relative to the generated F statistics.
+While the F statistic is not incredibly large (say off the page), when under the null hypothesis none of the generated F stats were greater than our actual F statisitc (8.670). Our P value was calculated at 0.003. As a result, we reject the null hypothesis.</p>
+</div>
+<div id="linear-regression" class="section level2">
+<h2>Linear Regression</h2>
+<p>Now I perform a linear regression to predict numeric weight from height, super strength, and weapon based powers. Their interaction is included and the model is then plotted.</p>
+<pre class="r"><code>herodata2 &lt;- herodata
+herodata2$Height_c &lt;- herodata2$Height - mean(herodata2$Height, 
+    na.rm = T)
+
+fit &lt;- lm(Weight ~ Height_c * `Super Strength` * `Weapon-based Powers`, 
+    data = herodata2)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Weight ~ Height_c * `Super Strength` * `Weapon-based Powers`, 
+##     data = herodata2)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -438.04  -42.42   -9.97    8.13  725.26 
+## 
+## Coefficients:
+##                                                         Estimate Std. Error
+## (Intercept)                                             61.39166    9.94289
+## Height_c                                                 0.64929    0.09707
+## `Super Strength`TRUE                                    52.05687   12.77767
+## `Weapon-based Powers`TRUE                               11.78846   30.87374
+## Height_c:`Super Strength`TRUE                           -0.22945    0.11665
+## Height_c:`Weapon-based Powers`TRUE                       0.02337    0.30691
+## `Super Strength`TRUE:`Weapon-based Powers`TRUE          -0.74008   40.02549
+## Height_c:`Super Strength`TRUE:`Weapon-based Powers`TRUE  0.55675    0.40759
+##                                                         t value Pr(&gt;|t|)    
+## (Intercept)                                               6.174 1.93e-09 ***
+## Height_c                                                  6.689 9.50e-11 ***
+## `Super Strength`TRUE                                      4.074 5.78e-05 ***
+## `Weapon-based Powers`TRUE                                 0.382    0.703    
+## Height_c:`Super Strength`TRUE                            -1.967    0.050 .  
+## Height_c:`Weapon-based Powers`TRUE                        0.076    0.939    
+## `Super Strength`TRUE:`Weapon-based Powers`TRUE           -0.018    0.985    
+## Height_c:`Super Strength`TRUE:`Weapon-based Powers`TRUE   1.366    0.173    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 108 on 333 degrees of freedom
+## Multiple R-squared:  0.299,  Adjusted R-squared:  0.2843 
+## F-statistic: 20.29 on 7 and 333 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>ggplot(herodata2, aes(x = Weight, y = Height_c, group = `Super Strength`)) + 
+    geom_point(aes(color = `Super Strength`)) + geom_smooth(method = &quot;lm&quot;, 
+    se = F, fullrange = T, aes(color = `Super Strength`)) + theme(legend.position = c(0.9, 
+    0.19)) + xlab(&quot;&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" />
+Upon interpreting the coefficients, we see for the intercept that the mean/predicted weight for characters with no weapon based powers or super strength and mean height is 61.39 kg.
+Height_c - the height associated with weight for characters with neither of the observed powers (for every 1 unit increase in height, weight goes up by 0.649 kg)
+Super StrengthTrue - for character with avg height, super strength characters have avg/predicted weight that is 52.057 kg greater than non super strength characters.
+Weapon-based PowersTrue - for character with avg height, weapon-based power characters have avg/predicted weight that is 11.788 kg greater than non weapon-based power characters.
+Height_c:SuperStrengthTrue - Slope of the height on weight for super strength characters is .229 less than for non super strength or weapon-based power characters.
+Height_c:Weapon-basedPowersTrue - Slope of the height on weight for weapon-based power characters is .233 greater than for non super strength or weapon-based power characters.</p>
+<p>Proportion of variation in the response variable is explained by the model’s R^2.
+This proportion is .299. 29.9% of variability in weight is accounted for by height, weapon based powers, and super strength.</p>
+<p>Now test assumptions (linearity, homoskedacity, and normailty)</p>
+<p>Both linearity and homoskedacity are violated. The points don’t appear to be scattered evenly at all and they fan out as we move to the right upon plotting the residuals and fitted values. Using the Kolmogorov-Smirnov Test, the normailty was examined and determined to also be violated. The extremely small p value from the test indicates a rejection of the null, meaning the true distribution is not normal.</p>
+<pre class="r"><code>resids &lt;- fit$residuals
+fitvals &lt;- fit$fitted.values
+ggplot() + geom_point(aes(fitvals, resids)) + geom_hline(yintercept = 0, 
+    color = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ks.test(resids, &quot;pnorm&quot;, mean = 0, sd(resids))</code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.23945, p-value &lt; 2.2e-16
+## alternative hypothesis: two-sided</code></pre>
+<p>The regression was recomputed with robust standard errors and several significant changes were noticed. These comments are presented below.</p>
+<pre class="r"><code>library(sandwich)
+library(lmtest)
+coeftest(fit, vcov = vcovHC(fit)[, 1:8])</code></pre>
+<pre><code>## 
+## t test of coefficients:
+## 
+##                                                          Estimate Std. Error
+## (Intercept)                                             61.391660   2.710845
+## Height_c                                                 0.649295   0.029153
+## `Super Strength`TRUE                                    52.056867   9.592956
+## `Weapon-based Powers`TRUE                               11.788462   4.279258
+## Height_c:`Super Strength`TRUE                           -0.229447   0.229307
+## Height_c:`Weapon-based Powers`TRUE                       0.023374   0.032450
+## `Super Strength`TRUE:`Weapon-based Powers`TRUE          -0.740081  32.481580
+## Height_c:`Super Strength`TRUE:`Weapon-based Powers`TRUE  0.556755   0.335448
+##                                                         t value  Pr(&gt;|t|)    
+## (Intercept)                                             22.6467 &lt; 2.2e-16 ***
+## Height_c                                                22.2721 &lt; 2.2e-16 ***
+## `Super Strength`TRUE                                     5.4266 1.108e-07 ***
+## `Weapon-based Powers`TRUE                                2.7548  0.006196 ** 
+## Height_c:`Super Strength`TRUE                           -1.0006  0.317743    
+## Height_c:`Weapon-based Powers`TRUE                       0.7203  0.471840    
+## `Super Strength`TRUE:`Weapon-based Powers`TRUE          -0.0228  0.981836    
+## Height_c:`Super Strength`TRUE:`Weapon-based Powers`TRUE  1.6597  0.097909 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>After recomputing several changes occured. First being that the standard errors of all the coefficients (except for height_c:SuperStrengthTrue) were lowered. When observing significance before the recomputation, only the intercept (p=1.93e-9), Height_c (p=9.5e-11), and Super Strength True (p=5.78e-5) coefficients were significant. After implementing the robust errors, all of these coefficients remained significant, with their p values even going down. But a new coefficient which was previously insignificant, Weapon-based Powers True, became significant with its p value lowering from .703 to .006.</p>
+<p>Here, I perform bootstap standard errors on the model and compare the standard errors</p>
+<pre class="r"><code>samp_distn &lt;- replicate(5000, {
+    boot_dat &lt;- herodata2[sample(nrow(herodata2), replace = TRUE), 
+        ]
+    fit1 &lt;- lm(Weight ~ Height_c * `Super Strength` * `Weapon-based Powers`, 
+        data = boot_dat)
+    coef(fit1)
+})
+
+samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)   Height_c `Super Strength`TRUE `Weapon-based Powers`TRUE
+## 1    2.611028 0.02839606             9.415282                  17.41167
+##   Height_c:`Super Strength`TRUE Height_c:`Weapon-based Powers`TRUE
+## 1                     0.2127224                          0.6567292
+##   `Super Strength`TRUE:`Weapon-based Powers`TRUE
+## 1                                        44.4283
+##   Height_c:`Super Strength`TRUE:`Weapon-based Powers`TRUE
+## 1                                                1.215745</code></pre>
+<p>Minuscule differences were noticed between the se of the intercept, Height_c, and Super Strength True, and Height_c:SuperStrengthTrue.
+More significant standard error differences were noticed between Weapon-based Powers True (diff=12.332), Height_c:Weapon-basedPowersTrue (diff=.594), Super Strength True:Weapon-based Powers True (diff=10.961),
+and Height_c:Super Strength TRUE:Weapon-based Powers TRUE (diff=.860)</p>
+</div>
+<div id="log-regression" class="section level2">
+<h2>Log Regression</h2>
+<p>A log regression was performed (minus interactions) to predict Accelerated Healing from several other powers which included Marksmanship, Animal Attributes, Weapon-based Powers, Super Strength, and Longevity. I did this in hopes to accurately predict the presence of a power a character might have based on another they already have (or one we know they have). In this case, its predicting the presence of Accelerated Healing. A classification diagnostic was also performed and analyzed. A confusion matrix was included as well.</p>
+<pre class="r"><code>logfit &lt;- glm(`Accelerated Healing` ~ Marksmanship + `Animal Attributes` + 
+    `Weapon-based Powers` + `Super Strength` + Longevity, data = herodata, 
+    family = &quot;binomial&quot;)
+coeftest(logfit)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                           Estimate Std. Error z value  Pr(&gt;|z|)    
+## (Intercept)               -3.16121    0.38282 -8.2576 &lt; 2.2e-16 ***
+## MarksmanshipTRUE           0.57269    0.41453  1.3815  0.167113    
+## `Animal Attributes`TRUE    1.98580    0.62964  3.1538  0.001611 ** 
+## `Weapon-based Powers`TRUE  0.51509    0.44618  1.1544  0.248327    
+## `Super Strength`TRUE       2.28407    0.38396  5.9488 2.702e-09 ***
+## LongevityTRUE              1.71726    0.34114  5.0339 4.807e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>prob &lt;- predict(logfit, type = &quot;response&quot;)
+truth &lt;- herodata$`Accelerated Healing`
+
+table(predict = as.numeric(prob &gt; 0.5), truth = herodata$`Accelerated Healing`) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict FALSE TRUE Sum
+##     0     223   56 279
+##     1      18   44  62
+##     Sum   241  100 341</code></pre>
+<pre class="r"><code>class_diag &lt;- function(probs, truth) {
+    
+    tab &lt;- table(factor(probs &gt; 0.5, levels = c(&quot;FALSE&quot;, &quot;TRUE&quot;)), 
+        truth)
+    acc = sum(diag(tab))/sum(tab)
+    sens = tab[2, 2]/colSums(tab)[2]
+    spec = tab[1, 1]/colSums(tab)[1]
+    ppv = tab[2, 2]/rowSums(tab)[2]
+    
+    if (is.numeric(truth) == FALSE &amp; is.logical(truth) == FALSE) 
+        truth &lt;- as.numeric(truth) - 1
+    
+    
+    ord &lt;- order(probs, decreasing = TRUE)
+    probs &lt;- probs[ord]
+    truth &lt;- truth[ord]
+    
+    TPR = cumsum(truth)/max(1, sum(truth))
+    FPR = cumsum(!truth)/max(1, sum(!truth))
+    
+    dup &lt;- c(probs[-1] &gt;= probs[-length(probs)], FALSE)
+    TPR &lt;- c(0, TPR[!dup], 1)
+    FPR &lt;- c(0, FPR[!dup], 1)
+    
+    n &lt;- length(TPR)
+    auc &lt;- sum(((TPR[-1] + TPR[-n])/2) * (FPR[-1] - FPR[-n]))
+    
+    data.frame(acc, sens, spec, ppv, auc)
+}
+
+class_diag(prob, truth)</code></pre>
+<pre><code>##            acc sens      spec       ppv       auc
+## TRUE 0.7829912 0.44 0.9253112 0.7096774 0.8094398</code></pre>
+<p>Coefficient Interpretation:
+MarksmanshipTRUE - The odds of Accelerated Healing being true with the presence of marksmanship is 1.77 times that of marksmanship (and the other powers) being false/not present.
+Animal AttributesTRUE - The odds of Accelerated Healing being true with the presence of animal attributes is 7.28 times that of animal attributes (and the other powers) being false/not present.
+Weapon-based PowersTRUE - The odds of Accelerated Healing being true with the presence of weapon-based powers is 1.67 times that of weapon-based powers (and the other powers) being false/not present.
+Super StrengthTRUE - The odds of Accelerated Healing being true with the presence of super strength is 9.82 times that of super strength (and the other powers) being false/not present.
+LongevityTRUE - The odds of Accelerated Healing being true with the presence of longevity is 5.57 times that of longevity (and the other powers) being false/not present.</p>
+<p>The accuracy, or proportion of correctly classified Accelerated Healing present or absent was .783 (78.3%). Not extremely high, but still fair.
+The sensitivity (true positive rate), or the proportion of Accelerated Healing actually being true and being correctly classified as such was .440. This seems to not be a good proportion and is easily visible in the confusion matrix. We correctly classified 44 true accelerated healers out of 100, with 56 true accelerated healers being misclassified as not true.
+The specificity (true negative rate), or the proportion of Accelerated Healing actually being false (non-accelerated healers) and being classified as such was .925. This is very high and also seen clearly in the matrix, with 223 out of 241 being classified correctly.
+The precision (positive predictive value), or the proportion classified as Accelerated healers who actually are was .710, and can be seen in the confusion matrix as 44/62.
+The auc was calculated at .809, a good auc indicating a good job of predicting overall.</p>
+<p>A Density plot was performed to help visualize these diagnostic values.</p>
+<pre class="r"><code>herodatalogit &lt;- herodata
+
+herodatalogit$logit &lt;- predict(logfit)
+
+herodatalogit$outcome &lt;- factor(herodatalogit$`Accelerated Healing`, 
+    levels = c(&quot;TRUE&quot;, &quot;FALSE&quot;))
+
+ggplot(herodatalogit, aes(logit, fill = outcome)) + geom_density(alpha = 0.3) + 
+    geom_vline(xintercept = 0, lty = 2)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" />
+We can clearly see that many true outcomes were incorrectly labeled false.</p>
+<p>An ROC plot was then generated and observed along with the AUC.</p>
+<pre class="r"><code>library(plotROC)
+
+ROCplot &lt;- ggplot(herodata) + geom_roc(aes(d = truth, m = prob), 
+    n.cuts = 0)
+ROCplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.8094398</code></pre>
+<p>As discussed previously, the AUC was classified as a lower end good classification (.809). The ROC plot itself is not nearly as 90 degree appearing as we’d like it to be, with the False positive fraction taking a big move to the right around the time the true postitve fraction is ~.6.</p>
+</div>
+<div id="log-regression-on-all-variables" class="section level2">
+<h2>Log Regression on all variables</h2>
+<p>A log regression was then performed to predict the Accelerated Healing from all/the rest of the variables. But before this was preformed, several variables were removed as they were not power/abilities and would not help in getting the information I desired. Variables like race, hair color, skin color, and eye color were all removed (essentially all non power variables).</p>
+<pre class="r"><code>allherodata &lt;- herodata %&gt;% select(-Race, -`Hair color`, -Publisher, 
+    -`Skin color`, -`Eye color`, -Gender, -name, -Alignment)
+
+fit3 &lt;- glm(`Accelerated Healing` ~ ., data = allherodata, family = &quot;binomial&quot;)
+coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                       Estimate  Std. Error    z value  Pr(&gt;|z|)
+## (Intercept)                        -2.5264e+15  1.1795e+07 -214188685 &lt; 2.2e-16
+## Height                              2.4408e+12  5.9194e+04   41233400 &lt; 2.2e-16
+## Weight                              2.6405e+11  5.3527e+04    4932980 &lt; 2.2e-16
+## AgilityTRUE                         7.7363e+14  1.4729e+07   52523421 &lt; 2.2e-16
+## `Lantern Power Ring`TRUE                    NA          NA         NA        NA
+## `Dimensional Awareness`TRUE        -1.4227e+15  4.5129e+07  -31524092 &lt; 2.2e-16
+## `Cold Resistance`TRUE              -1.6265e+15  3.3527e+07  -48514244 &lt; 2.2e-16
+## DurabilityTRUE                     -6.5460e+13  1.2334e+07   -5307281 &lt; 2.2e-16
+## StealthTRUE                         4.4324e+14  2.0179e+07   21965981 &lt; 2.2e-16
+## `Energy Absorption`TRUE            -3.7220e+14  1.9425e+07  -19160930 &lt; 2.2e-16
+## FlightTRUE                         -1.5396e+14  1.3423e+07  -11469723 &lt; 2.2e-16
+## `Danger Sense`TRUE                 -1.1262e+15  3.8329e+07  -29381796 &lt; 2.2e-16
+## `Underwater breathing`TRUE          1.5522e+15  5.0599e+07   30675433 &lt; 2.2e-16
+## MarksmanshipTRUE                   -7.8122e+14  1.8036e+07  -43314299 &lt; 2.2e-16
+## `Weapons Master`TRUE                5.0168e+14  2.0274e+07   24744753 &lt; 2.2e-16
+## `Power Augmentation`TRUE           -2.3324e+15  4.4014e+07  -52991590 &lt; 2.2e-16
+## `Animal Attributes`TRUE             6.1425e+13  3.1963e+07    1921777 &lt; 2.2e-16
+## LongevityTRUE                       1.1659e+15  1.5757e+07   73993284 &lt; 2.2e-16
+## IntelligenceTRUE                    3.8969e+14  1.6811e+07   23180920 &lt; 2.2e-16
+## `Super Strength`TRUE                3.2247e+14  1.4172e+07   22754202 &lt; 2.2e-16
+##                                       
+## (Intercept)                        ***
+## Height                             ***
+## Weight                             ***
+## AgilityTRUE                        ***
+## `Lantern Power Ring`TRUE              
+## `Dimensional Awareness`TRUE        ***
+## `Cold Resistance`TRUE              ***
+## DurabilityTRUE                     ***
+## StealthTRUE                        ***
+## `Energy Absorption`TRUE            ***
+## FlightTRUE                         ***
+## `Danger Sense`TRUE                 ***
+## `Underwater breathing`TRUE         ***
+## MarksmanshipTRUE                   ***
+## `Weapons Master`TRUE               ***
+## `Power Augmentation`TRUE           ***
+## `Animal Attributes`TRUE            ***
+## LongevityTRUE                      ***
+## IntelligenceTRUE                   ***
+## `Super Strength`TRUE               ***
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 149 rows ]
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>A classification diagnostic was then performed and analyzed.</p>
+<pre class="r"><code>prob2 &lt;- predict(fit3, type = &quot;response&quot;)
+truth2 &lt;- allherodata$`Accelerated Healing`
+
+class_diag(prob2, truth2)</code></pre>
+<pre><code>##           acc sens      spec       ppv       auc
+## TRUE 0.914956 0.92 0.9128631 0.8141593 0.9164315</code></pre>
+<p>The accuracy or proportion of correctly classified Accelerated Healing being present or absent was .915 (91.5%). This is very high, indicating obviously many accurate predictions.
+The sensitivity, or the proportion of Accelerated Healing actually being true and being correctly classified as such was .92. This again is another very high proportion, indicating many correct predictions of true Accelerated Healing.
+The specificity, or the proportion of Accelerated Healing actually being false (non-accelerated healers) and being classified as such was .913. This is also very high.<br />
+The precision, or the proportion classified as Accelerated healers who actually are was .814. This is still fairly high (not as large as the others) but also seems to indicate that some actual non-accelerated healers were incorrectly classified as true accelerating healers.
+The auc was calculated at .916. a great value indicating great overall predicting.</p>
+<p>A 10 fold CV with the same model was performed and average out of sample classification diagnostics were run and the resulting auc was compared to the in sample metric.</p>
+<pre class="r"><code>k = 10
+
+data &lt;- allherodata[sample(nrow(allherodata)), ]
+folds &lt;- cut(seq(1:nrow(allherodata)), breaks = k, labels = F)
+
+diags &lt;- NULL
+for (i in 1:k) {
+    
+    train &lt;- data[folds != i, ]
+    test &lt;- data[folds == i, ]
+    
+    truth &lt;- test$`Accelerated Healing`
+    
+    
+    fit &lt;- glm(`Accelerated Healing` ~ ., data = train, family = &quot;binomial&quot;)
+    
+    
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    
+    
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.7007563 0.5678283 0.7614092 0.4902564 0.6602175</code></pre>
+<p>The auc of the 10 fold was much smaller (.679) than the auc of the in sample metric (.916). This significant drop in the auc is a definite indication of overfitting. It is more reasonable to expect the model’s performance on the actual world to be .679, which is now a poor overall predicting classification.</p>
+<p>To follow, I perform a lasso on this model and list the selected variables.</p>
+<pre class="r"><code>library(glmnet)
+
+y &lt;- as.matrix(allherodata$`Accelerated Healing`)
+x &lt;- model.matrix(`Accelerated Healing` ~ ., data = allherodata)[, 
+    -1]
+
+cv &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(x, y, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 169 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                       s0
+## (Intercept)                  -2.00632455
+## Height                        .         
+## Weight                        .         
+## AgilityTRUE                   0.18887626
+## `Lantern Power Ring`TRUE      .         
+## `Dimensional Awareness`TRUE   .         
+## `Cold Resistance`TRUE         .         
+## DurabilityTRUE                .         
+## StealthTRUE                   .         
+## `Energy Absorption`TRUE       .         
+## FlightTRUE                    .         
+## `Danger Sense`TRUE            0.07768154
+## `Underwater breathing`TRUE    .         
+## MarksmanshipTRUE              .         
+## `Weapons Master`TRUE          .         
+## `Power Augmentation`TRUE      .         
+## `Animal Attributes`TRUE       .         
+## LongevityTRUE                 0.53510627
+## IntelligenceTRUE              .         
+## `Super Strength`TRUE          0.41187706
+## CryokinesisTRUE               .         
+## TelepathyTRUE                 .         
+## `Energy Armor`TRUE            .         
+## `Energy Blasts`TRUE           .         
+## DuplicationTRUE               .         
+## `Size Changing`TRUE           .         
+## `Density Control`TRUE         .         
+## StaminaTRUE                   0.81427818
+## `Astral Travel`TRUE           .         
+## `Audio Control`TRUE           .         
+## DexterityTRUE                 .         
+## OmnitrixTRUE                  .         
+## `Super Speed`TRUE             0.28216838
+## PossessionTRUE                .         
+## `Animal Oriented Powers`TRUE  .         
+## `Weapon-based Powers`TRUE     .         
+## ElectrokinesisTRUE            .         
+## `Darkforce Manipulation`TRUE  .         
+## `Death Touch`TRUE             .         
+## TeleportationTRUE             .         
+## `Enhanced Senses`TRUE         .         
+## TelekinesisTRUE               .         
+## `Energy Beams`TRUE            .         
+## MagicTRUE                     .         
+## HyperkinesisTRUE              .         
+## JumpTRUE                      0.39238162
+## ClairvoyanceTRUE              .         
+## `Dimensional Travel`TRUE      .         
+## `Power Sense`TRUE             .         
+## ShapeshiftingTRUE             .         
+## 
+##  ..............................
+##  ........suppressing 69 rows in show(); maybe adjust &#39;options(max.print= *, width = *)&#39;
+##  ..............................
+##                                            s0
+## `Radiation Immunity`TRUE           .         
+## `Vision - Telescopic`TRUE          .         
+## `Toxin and Disease Resistance`TRUE 0.38516408
+## `Spatial Awareness`TRUE            .         
+## `Energy Resistance`TRUE            .         
+## `Telepathy Resistance`TRUE         .         
+## `Molecular Combustion`TRUE         .         
+## OmnilingualismTRUE                 .         
+## `Portal Creation`TRUE              .         
+## MagnetismTRUE                      .         
+## `Mind Control Resistance`TRUE      .         
+## `Plant Control`TRUE                .         
+## SonarTRUE                          .         
+## `Sonic Scream`TRUE                 .         
+## `Time Manipulation`TRUE            .         
+## `Enhanced Touch`TRUE               .         
+## `Magic Resistance`TRUE             .         
+## InvisibilityTRUE                   .         
+## `Sub-Mariner`TRUE                  .         
+## `Radiation Absorption`TRUE         .         
+## `Intuitive aptitude`TRUE           .         
+## `Vision - Microscopic`TRUE         .         
+## MeltingTRUE                        .         
+## `Wind Control`TRUE                 .         
+## `Super Breath`TRUE                 .         
+## WallcrawlingTRUE                   0.05758167
+## `Vision - Night`TRUE               .         
+## `Vision - Infrared`TRUE            .         
+## `Grim Reaping`TRUE                 .         
+## `Matter Absorption`TRUE            .         
+## `The Force`TRUE                    .         
+## ResurrectionTRUE                   .         
+## TerrakinesisTRUE                   .         
+## `Vision - Heat`TRUE                .         
+## VitakinesisTRUE                    .         
+## `Radar Sense`TRUE                  .         
+## `Qwardian Power Ring`TRUE          .         
+## `Weather Control`TRUE              .         
+## `Vision - X-Ray`TRUE               .         
+## `Vision - Thermal`TRUE             .         
+## `Web Creation`TRUE                 0.29841865
+## `Reality Warping`TRUE              .         
+## `Odin Force`TRUE                   .         
+## `Symbiote Costume`TRUE             .         
+## `Speed Force`TRUE                  .         
+## `Phoenix Force`TRUE                .         
+## `Molecular Dissipation`TRUE        .         
+## `Vision - Cryo`TRUE                .         
+## OmnipresentTRUE                    .         
+## OmniscientTRUE                     .</code></pre>
+<p>The lasso retained the coefficients of Agility, Danger sense, Longevity, Super Strength, Super speed, stamina, jump ability, substance secretion, toxin and disease resistance, wall crawling, and web creation. These are the most predictive variables.</p>
+<p>To continue, a 10-fold CV was run using only the variables the previous lasso selected (mentioned above). The resulting out of sample auc was compared to the above regressions.</p>
+<pre class="r"><code>k = 10
+
+data2 &lt;- allherodata[sample(nrow(allherodata)), ]
+newfolds &lt;- cut(seq(1:nrow(allherodata)), breaks = k, labels = F)
+diags &lt;- NULL
+for (i in 1:k) {
+    
+    train &lt;- data2[newfolds != i, ]
+    test &lt;- data2[newfolds == i, ]
+    truth &lt;- test$`Accelerated Healing`
+    
+    
+    fit3 &lt;- glm(`Accelerated Healing` ~ Agility + `Danger Sense` + 
+        Longevity + `Super Strength` + `Super Speed` + Stamina + 
+        `Substance Secretion` + Jump + `Toxin and Disease Resistance` + 
+        Wallcrawling + `Web Creation`, data = train, family = &quot;binomial&quot;)
+    probs3 &lt;- predict(fit3, newdata = test, type = &quot;response&quot;)
+    
+    
+    diags &lt;- rbind(diags, class_diag(probs3, truth))
+}
+
+diags %&gt;% summarize_all(mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.8091597 0.5398851 0.9236322 0.7491955 0.8697341</code></pre>
+<p>The resulting out of sample auc (.860) was classified as good and is a significant step up from the initial logistic regression CV fold auc (.679). This lassoed out of sample auc is now much closer to the first in sample auc (run on all variables) of .916. While the difference between the two auc’s is not ridiculously small, their is still much less overfitting than for the non lassoed cv fold.</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

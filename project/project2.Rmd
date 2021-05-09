@@ -1,0 +1,350 @@
+---
+title: "Project2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## Nicholas Delarosa ned423
+
+The data I utilized focused on Marvel superheroes and supervillains. The data initially featured characters from other publishers, but I chose only to analyze Marvel (largely because they are my favorite publisher). The data contained 341 observations and 177 total variables, 167 of which were various powers, abilities, and characteristics. These variables were the main focus of analyzation, and some specific variables which would be examined (though all were looked at in the end) included super speed and accelerated healing. Other variables included super strength, weapon based powers, flight, intelligence, and enhanced stamina.  Of the non-power related variables, height and weight were utilized as well. Essentially, my goal was to determine if certain chosen power/abilities could be predicted by other powers/abilities. 
+
+## Superhero Data Read In and Join
+
+First I read in my data, then joined the two datasets to form my super hero data for observation.
+```{r}
+library(tidyverse)
+hero1 <- read_csv("heroes_information.csv")
+hero2 <- read_csv("super_hero_powers.csv")
+
+hero2 <- hero2 %>% rename("name"="hero_names")
+hero1 <- hero1 %>% select(-X1)
+```
+
+Here I join the data using a full join to preserve all the characters and abilities
+and then filter for only Marvel characters. 
+
+```{r}
+herodata <- hero1 %>% full_join(hero2)
+herodata <- herodata %>% na.omit()
+
+herodata = filter(herodata, Publisher == "Marvel Comics" )
+```
+## Manova
+
+Here I run my manova to test whether height or weight (two dependent variables) differ by having or not having super speed. 
+```{r}
+man1 <- manova(cbind(Height,Weight)~`Super Speed`, data=herodata)
+summary(man1)
+```
+A significant p value (0.014) was noted, indicating one of these two variables do differ by having or not having the super speed ability. 
+
+Univariate ANOVA's were then performed to determine the responses that showed a mean difference across having or not having super speed. 
+```{r}
+summary.aov(man1)
+```
+From the results, we see that there is no significant mean difference based on height (p value=.193).
+For weight, the mean difference does differ (p value=.003). In other words, weight does differ based on having or not having the super speed ability.
+
+The mean differences below help reinforce this conclusion. 
+```{r}
+herodata%>%group_by(`Super Speed`)%>%summarize(mean(Height),mean(Weight))
+```
+Here a post hoc t test is run, but since the super speed variable is only a yes or no value we already can conclude the significant variable and ignore this test when calculating Type 1 error.
+
+```{r}
+pairwise.t.test(herodata$Weight,herodata$`Super Speed`, p.adj="none")
+```
+
+Overall, 3 total tests were run:1 manova and 2 anovas.
+The probability of making at least one Type 1 error was determined to be 0.143 (14.3%).
+The Bonferri Correction was calculated to be 0.017.
+After this correction, the significance between weight and super speed is still significant (p value=.003).
+
+For our MANOVA assumptions, it would seem multivariate normality and linear relationships among the DV's were met. For the independent observation assumption it's possible that other power variables could have had an interaction resulting in the mean differences. 
+
+## Randomization test
+
+Now I run a randomization test on (F stat) weight and super speed. The null hypothesis essentially states that all the group means are equal, while the alternative hypothesis states that not all of the group means are equal. 
+
+```{r}
+obs_F<-8.6699
+
+Fs<-replicate(5000,{
+  new<-herodata%>%mutate(Weight=sample(Weight)) 
+
+  SSW<- new%>%group_by(`Super Speed`)%>%summarize(SSW=sum((Weight-mean(Weight))^2))%>%summarize(sum(SSW))%>%pull
+  SSB<- new%>%mutate(mean=mean(Weight))%>%group_by(`Super Speed`)%>%mutate(groupmean=mean(Weight))%>%
+    summarize(SSB=sum((mean-groupmean)^2))%>%summarize(sum(SSB))%>%pull
+  (SSB/1)/(SSW/339)
+})
+
+
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+mean(Fs>obs_F)
+
+
+```
+When interpreting the F stat histogram, we examine our actual F statistic (red line) relative to the generated F statistics.
+While the F statistic is not incredibly large (say off the page), when under the null hypothesis none of the generated F stats were greater than our actual F statisitc (8.670). Our P value was calculated at 0.003. As a result, we reject the null hypothesis.
+
+## Linear Regression
+
+Now I perform a linear regression to predict numeric weight from height, super strength, and weapon based powers. Their interaction is included and the model is then plotted.
+
+```{r}
+herodata2 <- herodata
+herodata2$Height_c <- herodata2$Height - mean(herodata2$Height, na.rm=T)
+
+fit <- lm(Weight ~ Height_c*`Super Strength`*`Weapon-based Powers`, data=herodata2)
+summary(fit)
+
+
+ggplot(herodata2, aes(x=Weight, y=Height_c,group=`Super Strength`))+geom_point(aes(color=`Super Strength`))+  geom_smooth(method="lm",se=F,fullrange=T,aes(color=`Super Strength`))+theme(legend.position=c(.9,.19))+xlab("")
+
+```
+Upon interpreting the coefficients, we see for the intercept that the mean/predicted weight for characters with no weapon based powers or super strength  and mean height is 61.39 kg. 
+Height_c - the height associated with weight for characters with neither of the observed powers (for every 1 unit increase in height, weight goes up by 0.649 kg)
+Super StrengthTrue - for character with avg height, super strength characters have avg/predicted weight that is 52.057 kg greater than non super strength characters.
+Weapon-based PowersTrue - for character with avg height, weapon-based power characters have avg/predicted weight that is 11.788 kg greater than non weapon-based power characters.
+Height_c:SuperStrengthTrue - Slope of the height on weight for super strength characters is .229 less than for non super strength or weapon-based power characters.
+Height_c:Weapon-basedPowersTrue - Slope of the height on weight for weapon-based power characters is .233 greater than for non super strength or weapon-based power characters.
+
+Proportion of variation in the response variable is explained by the model's R^2.
+This proportion is .299. 29.9% of variability in weight is accounted for by height, weapon based powers, and super strength. 
+
+
+
+Now test assumptions (linearity, homoskedacity, and normailty)
+
+Both linearity and homoskedacity are violated. The points don't appear to be scattered evenly at all and they fan out as we move to the right upon plotting the residuals and fitted values. Using the Kolmogorov-Smirnov Test, the normailty was examined and determined to also be violated. The extremely small p value from the test indicates a rejection of the null, meaning the true distribution is not normal. 
+
+```{r}
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')
+
+ks.test(resids, "pnorm", mean=0, sd(resids))
+
+```
+
+
+The regression was recomputed with robust standard errors and several significant changes were noticed. These comments are presented below. 
+
+```{r}
+library(sandwich)
+library(lmtest)
+coeftest(fit, vcov = vcovHC(fit)[,1:8])
+```
+
+After recomputing several changes occured. First being that the standard errors of all the coefficients (except for height_c:SuperStrengthTrue) were lowered. When observing significance before the recomputation, only the intercept (p=1.93e-9), Height_c (p=9.5e-11), and Super Strength True (p=5.78e-5) coefficients were significant. After implementing the robust errors, all of these coefficients remained significant, with their p values even going down. But a new coefficient which was previously insignificant, Weapon-based Powers True, became significant with its p value lowering from .703 to .006. 
+
+
+
+Here, I perform bootstap standard errors on the model and compare the standard errors
+
+```{r}
+samp_distn<-replicate(5000, {
+  boot_dat<-herodata2[sample(nrow(herodata2),replace=TRUE),]
+  fit1<-lm(Weight ~ Height_c*`Super Strength`*`Weapon-based Powers`,data=boot_dat) 
+  coef(fit1)
+})
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+
+
+```
+Minuscule differences were noticed between the se of the intercept, Height_c, and Super Strength True, and Height_c:SuperStrengthTrue.
+More significant standard error differences were noticed between Weapon-based Powers True (diff=12.332), Height_c:Weapon-basedPowersTrue (diff=.594), Super Strength True:Weapon-based Powers True (diff=10.961), 
+and Height_c:Super Strength TRUE:Weapon-based Powers TRUE (diff=.860)
+
+
+
+## Log Regression
+
+A log regression was performed (minus interactions) to predict Accelerated Healing from several other powers which included Marksmanship, Animal Attributes, Weapon-based Powers, Super Strength, and Longevity. I did this in hopes to accurately predict the presence of a power a character might have based on another they already have (or one we know they have). In this case, its predicting the presence of Accelerated Healing. A classification diagnostic was also performed and analyzed. A confusion matrix was included as well.
+
+```{r}
+logfit <- glm(`Accelerated Healing`~ Marksmanship+`Animal Attributes`+`Weapon-based Powers`+`Super Strength`+Longevity, data=herodata, family="binomial") 
+coeftest(logfit)
+
+prob <- predict(logfit, type="response")
+truth <- herodata$`Accelerated Healing`
+
+table(predict=as.numeric(prob>.5),truth=herodata$`Accelerated Healing`)%>%addmargins
+
+
+
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+class_diag(prob, truth)
+```
+Coefficient Interpretation: 
+MarksmanshipTRUE - The odds of Accelerated Healing being true with the presence of marksmanship is 1.77 times that of marksmanship (and the other powers) being false/not present. 
+Animal AttributesTRUE - The odds of Accelerated Healing being true with the presence of animal attributes is 7.28 times that of animal attributes (and the other powers) being false/not present. 
+Weapon-based PowersTRUE - The odds of Accelerated Healing being true with the presence of weapon-based powers is 1.67 times that of weapon-based powers (and the other powers) being false/not present.
+Super StrengthTRUE - The odds of Accelerated Healing being true with the presence of super strength is 9.82 times that of super strength (and the other powers) being false/not present.
+LongevityTRUE - The odds of Accelerated Healing being true with the presence of longevity is 5.57 times that of longevity (and the other powers) being false/not present. 
+
+The accuracy, or proportion of correctly classified Accelerated Healing present or absent was .783 (78.3%). Not extremely high, but still fair.
+The sensitivity (true positive rate), or the proportion of Accelerated Healing actually being true and being correctly classified as such was .440. This seems to not be a good proportion and is easily visible in the confusion matrix. We correctly classified 44 true accelerated healers out of 100, with 56 true accelerated healers being misclassified as not true. 
+The specificity (true negative rate), or the proportion of Accelerated Healing actually being false (non-accelerated healers) and being classified as such was .925. This is very high and also seen clearly in the matrix, with 223 out of 241 being classified correctly. 
+The precision (positive predictive value), or the proportion classified as Accelerated healers who actually are was .710, and can be seen in the confusion matrix as 44/62. 
+The auc was calculated at .809, a good auc indicating a good job of predicting overall. 
+
+
+
+A Density plot was performed to help visualize these diagnostic values.
+
+```{r}
+herodatalogit <-herodata
+
+herodatalogit$logit<-predict(logfit) 
+
+herodatalogit$outcome<-factor(herodatalogit$`Accelerated Healing`,levels=c("TRUE","FALSE")) 
+
+ggplot(herodatalogit,aes(logit, fill=outcome))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)
+```
+We can clearly see that many true outcomes were incorrectly labeled false. 
+
+An ROC plot was then generated and observed along with the AUC.
+```{r}
+library(plotROC)
+
+ROCplot<-ggplot(herodata)+geom_roc(aes(d=truth,m=prob), n.cuts=0) 
+ROCplot
+
+calc_auc(ROCplot)
+```
+As discussed previously, the AUC was classified as a lower end good classification (.809). The ROC plot itself is not nearly as 90 degree appearing as we'd like it to be, with the False positive fraction taking a big move to the right around the time the true postitve fraction is ~.6.
+
+## Log Regression on all variables
+A log regression was then performed to predict the Accelerated Healing from all/the rest of the variables. But before this was preformed, several variables were removed as they were not power/abilities and would not help in getting the information I desired. Variables like race, hair color, skin color, and eye color were all removed (essentially all non power variables). 
+
+```{r}
+allherodata <- herodata %>% select(-Race, -`Hair color`, -Publisher, -`Skin color`, -`Eye color`, -Gender, -name, -Alignment)
+
+fit3 <- glm(`Accelerated Healing`~., data=allherodata, family="binomial")
+coeftest(fit3)
+```
+
+
+A classification diagnostic was then performed and analyzed. 
+
+```{r}
+prob2 <- predict(fit3, type="response")
+truth2 <- allherodata$`Accelerated Healing`
+
+class_diag(prob2, truth2)
+```
+
+The accuracy or proportion of correctly classified Accelerated Healing being present or absent was .915 (91.5%). This is very high, indicating obviously many accurate predictions.
+The sensitivity, or the proportion of Accelerated Healing actually being true and being correctly classified as such was .92. This again is another very high proportion, indicating many correct predictions of true Accelerated Healing. 
+The specificity, or the proportion of Accelerated Healing actually being false (non-accelerated healers) and being classified as such was .913. This is also very high.   
+The precision, or the proportion classified as Accelerated healers who actually are was .814. This is still fairly high (not as large as the others) but also seems to indicate that some actual non-accelerated healers were incorrectly classified as true accelerating healers. 
+The auc was calculated at .916. a great value indicating great overall predicting. 
+
+A 10 fold CV with the same model was performed and average out of sample classification diagnostics were run and the resulting auc was compared to the in sample metric.
+
+```{r}
+k=10
+
+data<-allherodata[sample(nrow(allherodata)),] 
+folds<-cut(seq(1:nrow(allherodata)),breaks=k,labels=F) 
+
+diags<-NULL
+for(i in 1:k){
+  
+  train<-data[folds!=i,] 
+  test<-data[folds==i,]
+  
+  truth<-test$`Accelerated Healing` 
+  
+ 
+  fit<-glm(`Accelerated Healing`~.,data=train,family="binomial")
+  
+ 
+  probs<-predict(fit,newdata=test,type="response")
+  
+ 
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+summarize_all(diags,mean)
+```
+The auc of the 10 fold was much smaller (.679) than the auc of the in sample metric (.916). This significant drop in the auc is a definite indication of overfitting. It is more reasonable to expect the model's performance on the actual world to be .679, which is now a poor overall predicting classification. 
+
+
+To follow, I perform a lasso on this model and list the selected variables. 
+
+```{r}
+library(glmnet)
+
+y<-as.matrix(allherodata$`Accelerated Healing`) 
+x<-model.matrix(`Accelerated Healing`~., data=allherodata)[,-1]
+
+cv<-cv.glmnet(x,y,family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso)
+```
+The lasso retained the coefficients of Agility, Danger sense, Longevity, Super Strength, Super speed, stamina, jump ability, substance secretion, toxin and disease resistance, wall crawling, and web creation. These are the most predictive variables.
+
+
+To continue, a 10-fold CV was run using only the variables the previous lasso selected (mentioned above). The resulting out of sample auc was compared to the above regressions.
+
+```{r}
+k=10
+
+data2<-allherodata[sample(nrow(allherodata)),] 
+newfolds<-cut(seq(1:nrow(allherodata)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+  
+  train<-data2[newfolds!=i,] 
+  test<-data2[newfolds==i,]
+  truth<-test$`Accelerated Healing`
+  
+  
+  fit3<-glm(`Accelerated Healing`~Agility+`Danger Sense`+Longevity+`Super Strength`+`Super Speed`+Stamina+`Substance Secretion`+Jump+`Toxin and Disease Resistance`+Wallcrawling+`Web Creation`,data=train,family="binomial")
+  probs3<-predict(fit3,newdata = test,type="response")
+  
+  
+  diags<-rbind(diags,class_diag(probs3,truth))
+}
+
+diags%>%summarize_all(mean)
+
+
+```
+
+The resulting out of sample auc (.860) was classified as good and is a significant step up from the initial logistic regression CV fold auc (.679). This lassoed out of sample auc is now much closer to the first in sample auc (run on all variables) of .916. While the difference between the two auc's is not ridiculously small, their is still much less overfitting than for the non lassoed cv fold. 
+
+
+
