@@ -6,6 +6,31 @@ hiderelated: true
 hidediscus: true
 ---
 
-<center>
-<iframe src="/resume.pdf" width="100%" height="800" border="0"></iframe>
-</center>
+## Biography
+University of Texas at Austin student majoring in Biology and minoring in Sociology. Born in Dallas but raised in San Antonio, I've always had a desire to work in the medical field. After graduating high school, I pursued a pre-med degree in the College of Natural Sciences at UT and now look to further my education through medical school. 
+
+## Education 
+* BSA in Biology - University of Texas at Austin
+    + Minor in Sociology 
+
+## Interests
+My interests include evolution studies and sports therapy, specifically how to maximize injury prevention and rehabilitation.
+
+## Work Experience 
+* Legal Assistant - Baron & Budd, P.C. Dallas, TX - 2019-2020
+    + File sorting and management 
+    + Legal Research 
+    + Document Drafting
+
+## Skills
+Hard working student with exceptional interpersonal and research skills. Very flexible work abilities and great at team projects. 
+
+## Accomplishments
+    
+* TIP Scholar
+* TILF student award recipient 
+
+## Work Contact
+Email: nick.delarosa1998@gmail.com
+
+

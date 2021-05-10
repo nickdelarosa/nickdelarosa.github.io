@@ -8,24 +8,12 @@
     <language>en-US</language>
     <lastBuildDate>Sat, 08 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>My blog</title>
+      <title>Python and R Collaboration</title>
       <link>/post/2021/05/08/my-blog/</link>
       <pubDate>Sat, 08 May 2021 00:00:00 +0000</pubDate>
       
       <guid>/post/2021/05/08/my-blog/</guid>
-      <description> Hello, this is my post Link to project 1 Link to google
-2+2 ## [1] 4 </description>
-    </item>
-    
-    <item>
-      <title>Hello R Markdown</title>
-      <link>/post/2015/07/23/hello-r-markdown/</link>
-      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
-      
-      <guid>/post/2015/07/23/hello-r-markdown/</guid>
-      <description>R Markdown This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see http://rmarkdown.rstudio.com.
-You can embed an R code chunk like this:
-summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 26.00 ## Median :15.0 Median : 36.00 ## Mean :15.4 Mean : 42.98 ## 3rd Qu.</description>
+      <description>While debate between both programming languages will always exists, it was incredibly interesting to examine how quite similar both R and Python are in achieving the same output. As I’ll discuss later, there are methods for R and Python to communicate with each other, whether it be through python within R, or R within python! For now I want to highlight an example of python’s mirror of R’s dpylr functions within tidyverse.</description>
     </item>
     
     <item>
@@ -64,7 +52,8 @@ summary(cars) ## speed dist ## Min. : 4.0 Min. : 2.00 ## 1st Qu.:12.0 1st Qu.: 2
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
       <guid>/resume/</guid>
-      <description>    </description>
+      <description>Biography University of Texas at Austin student majoring in Biology and minoring in Sociology. Born in Dallas but raised in San Antonio, I’ve always had a desire to work in the medical field. After graduating high school, I pursued a pre-med degree in the College of Natural Sciences at UT and now look to further my education through medical school.
+ Education  BSA in Biology - University of Texas at Austin  Minor in Sociology    Interests My interests include evolution studies and sports therapy, specifically how to maximize injury prevention and rehabilitation.</description>
     </item>
     
   </channel>
